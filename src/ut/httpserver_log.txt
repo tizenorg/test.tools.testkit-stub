@@ -1,0 +1,290 @@
+
+[ testing xml: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.xml ]
+
+[ split xml: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1.xml by <set> ]
+[ this might take some time, please wait ]
+[ total set number is: 10 ]
+[ process set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_1.xml ]
+[ process set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_2.xml ]
+[ process set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_3.xml ]
+[ process set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_4.xml ]
+[ process set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_5.xml ]
+[ process set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_6.xml ]
+[ process set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_7.xml ]
+[ process set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_8.xml ]
+[ process set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_9.xml ]
+[ process set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_10.xml ]
+[ remove empty set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_1.xml ]
+[ remove empty set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_2.xml ]
+[ remove empty set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_3.xml ]
+[ remove empty set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_4.xml ]
+[ remove empty set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_5.xml ]
+[ remove empty set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_6.xml ]
+[ remove empty set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_7.xml ]
+[ remove empty set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_8.xml ]
+[ remove empty set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_9.xml ]
+
+[ run set: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_10.xml ]
+[ split xml: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_10.xml by <case> ]
+[ this might take some time, please wait ]
+[ prepare_starup_parameters ]
+[ waiting for kill http server ]
+[ forward server http://127.0.0.1:9002 ]
+[ launch the stub app ]
+httpserver->g_test_suite is: api2contt0
+[Server is running.....]
+wrt-launcher: no process found
+[ check server status, get ready! ]
+GET /check_server_status HTTP/1.1
+Host: 127.0.0.1:9002
+Content-Length: 0
+Accept-Encoding: gzip, deflate, compress
+Accept: */*
+User-Agent: python-requests/1.1.0 CPython/2.7.3 Linux/3.5.0-27-generic
+
+
+block: 1/-1215935884, total case: 0/0, block case: 0/0, m_timeout_count:0
+server response is:{
+   "block_finished" : 0,
+   "finished" : 0
+}
+
+POST /init_test HTTP/1.1
+Host: 127.0.0.1:9002
+Content-Length: 587
+content-type: application/json
+Accept-Encoding: gzip, deflate, compress
+Accept: */*
+User-Agent: python-requests/1.1.0 CPython/2.7.3 Linux/3.5.0-27-generic
+
+{"currentBlk": "1", "totalBlk": "1", "casecount": "1", "cases": [{"onload_delay": "3", "case_id": "video_addTextTrack_base", "steps": [{"expected": "Pass", "order": "1", "step_desc": "Check if the vedio.addTextTrack has all arguments that expected a new MutableTextTrack object is to be created and returned"}], "purpose": "Check if the vedio.addTextTrack has all arguments that expected a new MutableTextTrack object is to be created and returned", "entry": "/opt/tct-webapi-w3c-content-tests/Video/video_addTextTrack_base.html", "order": "1"}], "type": "compliance", "exetype": "auto"}
+[ init the test suite ]
+wrt-launcher -k api2contt0
+result: App isn't running
+
+[ test suite: tct-webapi-w3c-content-tests.auto.suite_1_set_10.xml, block: 1/1 , finished: 0 ]
+wrt-launcher -s api2contt0
+result: launched
+
+server response is:{"OK":1}
+GET /check_server_status HTTP/1.1
+Host: 127.0.0.1:9002
+Content-Length: 0
+Accept-Encoding: gzip, deflate, compress
+Accept: */*
+User-Agent: python-requests/1.1.0 CPython/2.7.3 Linux/3.5.0-27-generic
+
+
+block: 1/1, total case: 0/1, block case: 0/1, m_timeout_count:0
+server response is:{
+   "block_finished" : 0,
+   "finished" : 0
+}
+
+[ test suite: tct-webapi-w3c-content-tests.auto.suite_1_set_10.xml, block: 1/1 , finished: 0 ]
+GET /check_server_status HTTP/1.1
+Host: 127.0.0.1:9002
+Content-Length: 0
+Accept-Encoding: gzip, deflate, compress
+Accept: */*
+User-Agent: python-requests/1.1.0 CPython/2.7.3 Linux/3.5.0-27-generic
+
+
+block: 1/1, total case: 0/1, block case: 0/1, m_timeout_count:0
+server response is:{
+   "block_finished" : 0,
+   "finished" : 0
+}
+
+GET /check_server HTTP/1.1
+Host: 127.0.0.1:8000
+Accept-Language: en
+User-Agent: Mozilla/5.0 (Linux; U; Tizen 2.0; en-us) AppleWebKit/537.1 (KHTML, like Gecko) Version/2.0 Mobile
+Accept: */*
+Accept-Charset: iso-8859-1, utf-8, utf16, *;q=0.1
+x-Wap-Proxy-Cookie: none
+Accept-Encoding: gzip, deflate
+Connection: Keep-Alive
+
+
+[ checking server, and found the server is running ]
+server response is:{"OK":1}
+GET /init_session_id?session_id=6330 HTTP/1.1
+Host: 127.0.0.1:8000
+Accept-Language: en
+User-Agent: Mozilla/5.0 (Linux; U; Tizen 2.0; en-us) AppleWebKit/537.1 (KHTML, like Gecko) Version/2.0 Mobile
+Accept: */*
+Accept-Charset: iso-8859-1, utf-8, utf16, *;q=0.1
+x-Wap-Proxy-Cookie: none
+Accept-Encoding: gzip, deflate
+Connection: Keep-Alive
+
+
+[ sessionID: 6330 is gotten from the client ]
+server response is:{"OK":1}
+GET /auto_test_task?session_id=6330 HTTP/1.1
+Host: 127.0.0.1:8000
+Accept-Language: en
+User-Agent: Mozilla/5.0 (Linux; U; Tizen 2.0; en-us) AppleWebKit/537.1 (KHTML, like Gecko) Version/2.0 Mobile
+Accept: text/plain, */*; q=0.01
+Accept-Charset: iso-8859-1, utf-8, utf16, *;q=0.1
+x-Wap-Proxy-Cookie: none
+Accept-Encoding: gzip, deflate
+Connection: Keep-Alive
+
+
+
+start time: 1982-02-06 15:27:38
+
+[case] execute case: video_addTextTrack_base
+last_test_result: N/A
+server response is:{
+   "case_id" : "video_addTextTrack_base",
+   "entry" : "/opt/tct-webapi-w3c-content-tests/Video/video_addTextTrack_base.html",
+   "onload_delay" : "3",
+   "order" : "1",
+   "purpose" : "Check if the vedio.addTextTrack has all arguments that expected a new MutableTextTrack object is to be created and returned",
+   "steps" : [
+      {
+         "expected" : "Pass",
+         "order" : "1",
+         "step_desc" : "Check if the vedio.addTextTrack has all arguments that expected a new MutableTextTrack object is to be created and returned"
+      }
+   ]
+}
+
+GET /check_execution_progress?session_id=6330 HTTP/1.1
+Host: 127.0.0.1:8000
+Accept-Language: en
+User-Agent: Mozilla/5.0 (Linux; U; Tizen 2.0; en-us) AppleWebKit/537.1 (KHTML, like Gecko) Version/2.0 Mobile
+Accept: text/plain, */*; q=0.01
+Accept-Charset: iso-8859-1, utf-8, utf16, *;q=0.1
+x-Wap-Proxy-Cookie: none
+Accept-Encoding: gzip, deflate
+Connection: Keep-Alive
+
+
+server response is:{"total":1,"current":1,"last_test_result":"N/A"}
+GET /ask_next_step?session_id=6330 HTTP/1.1
+Host: 127.0.0.1:8000
+Accept-Language: en
+User-Agent: Mozilla/5.0 (Linux; U; Tizen 2.0; en-us) AppleWebKit/537.1 (KHTML, like Gecko) Version/2.0 Mobile
+Accept: text/plain, */*; q=0.01
+Accept-Charset: iso-8859-1, utf-8, utf16, *;q=0.1
+x-Wap-Proxy-Cookie: none
+Accept-Encoding: gzip, deflate
+Connection: Keep-Alive
+
+
+server response is:{"step":"continue"}
+POST /commit_result HTTP/1.1
+Host: 127.0.0.1:8000
+Origin: file://
+Accept-Language: en
+User-Agent: Mozilla/5.0 (Linux; U; Tizen 2.0; en-us) AppleWebKit/537.1 (KHTML, like Gecko) Version/2.0 Mobile
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json, text/javascript, */*; q=0.01
+Accept-Charset: iso-8859-1, utf-8, utf16, *;q=0.1
+x-Wap-Proxy-Cookie: none
+Accept-Encoding: gzip, deflate
+Connection: Keep-Alive
+Content-Length: 177
+
+purpose=Check+if+the+vedio.addTextTrack+has+all+arguments+that+expected+a+new+MutableTextTrack+object+is+to+be+created+and+returned&result=PASS&msg=%5BMessage%5D&session_id=6330
+server response is:{"OK":1}
+GET /auto_test_task?session_id=6330 HTTP/1.1
+Host: 127.0.0.1:8000
+Accept-Language: en
+User-Agent: Mozilla/5.0 (Linux; U; Tizen 2.0; en-us) AppleWebKit/537.1 (KHTML, like Gecko) Version/2.0 Mobile
+Accept: text/plain, */*; q=0.01
+Accept-Charset: iso-8859-1, utf-8, utf16, *;q=0.1
+x-Wap-Proxy-Cookie: none
+Accept-Encoding: gzip, deflate
+Connection: Keep-Alive
+
+
+
+[ no auto case is available any more ]
+server response is:{"none":0}
+GET /manual_cases HTTP/1.1
+Host: 127.0.0.1:8000
+Accept-Language: en
+User-Agent: Mozilla/5.0 (Linux; U; Tizen 2.0; en-us) AppleWebKit/537.1 (KHTML, like Gecko) Version/2.0 Mobile
+Accept: text/plain, */*; q=0.01
+Accept-Charset: iso-8859-1, utf-8, utf16, *;q=0.1
+x-Wap-Proxy-Cookie: none
+Accept-Encoding: gzip, deflate
+Connection: Keep-Alive
+
+
+server response is:{"none":0}
+[ test suite: tct-webapi-w3c-content-tests.auto.suite_1_set_10.xml, block: 1/1 , finished: 1 ]
+GET /check_server_status HTTP/1.1
+Host: 127.0.0.1:9002
+Content-Length: 0
+Accept-Encoding: gzip, deflate, compress
+Accept: */*
+User-Agent: python-requests/1.1.0 CPython/2.7.3 Linux/3.5.0-27-generic
+
+
+block: 1/1, total case: 1/1, block case: 1/1, m_timeout_count:0
+server response is:{
+   "block_finished" : 1,
+   "finished" : 1
+}
+
+GET /get_test_result HTTP/1.1
+Host: 127.0.0.1:9002
+Content-Length: 0
+Accept-Encoding: gzip, deflate, compress
+Accept: */*
+User-Agent: python-requests/1.1.0 CPython/2.7.3 Linux/3.5.0-27-generic
+
+
+server response is:{
+   "cases" : [
+      {
+         "case_id" : "video_addTextTrack_base",
+         "end_at" : "1982-02-06 15:27:39",
+         "order" : "1",
+         "result" : "PASS",
+         "start_at" : "1982-02-06 15:27:38",
+         "stdout" : "[Message]"
+      }
+   ],
+   "count" : "1"
+}
+
+[ cases result saved to resultfile ]
+
+[ show down server ]
+GET /shut_down_server HTTP/1.1
+Host: 127.0.0.1:9002
+Content-Length: 0
+Accept-Encoding: gzip, deflate, compress
+Accept: */*
+User-Agent: python-requests/1.1.0 CPython/2.7.3 Linux/3.5.0-27-generic
+
+
+wrt-launcher: no process found
+
+[ test complete at time: 2013-04-18_16_06_12 ]
+[ start merging test result xml files,         this might take some time, please wait ]
+[ merge result files into /opt/testkit/lite/2013-04-18-16:05:48.429618/tests.result.xml ]
+|--[ merge webapi result file: /opt/testkit/lite/2013-04-18-16:05:48.429618/tct-webapi-w3c-content-tests.auto.suite_1_set_10.xml ]
+----[ suite: tct-webapi-w3c-content-tests, set: Video, time: 2013-04-18_16_06_12 ]
+[ test summary ]
+  [ total case number: 1 ]
+  [ pass rate: 100.00% ]
+  [ PASS case number: 1 ]
+  [ FAIL case number: 0 ]
+  [ BLOCK case number: 0 ]
+  [ N/A case number: 0 ]
+[ generate result xml: /opt/testkit/lite/2013-04-18-16:05:48.429618/tests.result.xml ]
+[ merge complete, write to the result file,         this might take some time, please wait ]
+wrt-launcher -k api2contt0
+result: killed
+
+server response is:{"OK":1}
+[ all tasks for testkit lite are accomplished, goodbye ]
+danny@danny-Latitude-E6400:~$ 
