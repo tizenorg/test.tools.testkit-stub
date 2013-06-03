@@ -46,12 +46,12 @@ Json::Value TestCase::result_to_json() {
 	return root;
 }
 
-void TestCase::set_result(string test_result, string test_msg) {
+void TestCase::set_result(Json::Value paras) {
 	is_executed = true;
 
-	result = test_result;
+	result = paras["result"].asString();
 
-	std_out = test_msg;
+	std_out = paras["msg"].asString();
 
 	getCurrentTime();
 	end_at = m_str_time;
@@ -59,7 +59,6 @@ void TestCase::set_result(string test_result, string test_msg) {
 
 void TestCase::set_start_at() {
 	getCurrentTime();
-	cout << "\nstart time: " << m_str_time << endl;
 	start_at = m_str_time;
 }
 

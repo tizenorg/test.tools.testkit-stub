@@ -32,7 +32,7 @@ public:
 	void init(const Json::Value value); // the case_node should be a string in json format
 	Json::Value to_json();
 	Json::Value result_to_json();
-	void set_result(string test_result, string test_msg);
+	void set_result(Json::Value paras);
 	void set_start_at();
 	void getCurrentTime();
 };

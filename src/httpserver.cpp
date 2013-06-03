@@ -18,8 +18,6 @@
 #include "comfun.h"
 #include "httpserver.h"
 
-// if use 8080 for SERVER_PORT, it will not work with chrome
-#define SERVER_PORT 8000
 #define MAX_BUF 102400
 
 #define GET   0
@@ -37,6 +35,9 @@
     #endif
 #endif
 
+// if use 8080 for server_port, it will not work with chrome
+int server_port = 8000;
+
 HttpServer::HttpServer() {
 	m_test_cases = NULL;
 	m_exeType = "auto"; // set default to auto
@@ -49,19 +50,17 @@ HttpServer::HttpServer() {
 	m_last_auto_result = "N/A";
 	m_running_session = "";
 	m_server_checked = false;
+	m_check_times = 0;
 	g_show_log = false;
-	g_port = "";
-	g_hide_status = "";
-	g_test_suite = "";
-	g_exe_sequence = "";
+	g_port = 8000;
 	g_run_wiget = false;
-	g_enable_memory_collection = "";
 	m_block_finished = false;
 	m_set_finished = false;
 	m_timeout_count = 0;
 	m_failto_launch = 0;
 	m_killing_widget = false;
 	m_rerun = false;
+	m_suite_name = "";
 
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = timer_handler;
@@ -185,11 +184,33 @@ void HttpServer::set_timer(int timeout_value) {
 		perror("error: set timer!!!");
 }
 
+Json::Value HttpServer::splitContent(string content) {
+	Json::Value httpParas;
+	if (content != "") {
+		std::vector < std::string > splitstr = ComFun::split(content, "&");
+		for (unsigned int i = 0; i < splitstr.size(); i++) {
+			vector < string > resultkey = ComFun::split(splitstr[i], "=");
+			char* tmp = ComFun::UrlDecode(resultkey[0].c_str());
+			string key = tmp;
+			delete[] tmp; // free memory from comfun
+			if (resultkey[1] != "") {
+				tmp = ComFun::UrlDecode(resultkey[1].c_str());
+				string value = tmp;
+				delete[] tmp; // free memory from comfun
+				httpParas[key] = value;
+			}
+			else httpParas["myContent"] = key;
+		}
+		DBG_ONLY(outputFile << httpParas.toStyledString() << endl;);
+	}
+	return httpParas;
+}
 
 /** send out response according to different http request. 
 a typical workflow of auto case would be
 /check_server_status						(by com-module)
 /init_test									(by com-module)
+/set_testcase								(by com-module)
 /check_server 								(by widget)
 /init_session_id?session_id=2033			(by widget)
 /auto_test_task?session_id=2033				(by widget)
@@ -223,19 +244,59 @@ a typical workflow of manual case would be
 void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 	prequest->prefix = "application/json";
 	string json_str = "";
-	string json_parse_str = "";
 
-	if (prequest->path.find("/init_test") != string::npos) {// invoke by com-module to send test data
+	if (prequest->path.find("/init_test") != string::npos) {// invoke by com-module to init some para for test
+		Json::Reader reader;
+		Json::Value value;
+
+		cout << "[ init the test suite ]" << endl;
+		DBG_ONLY(outputFile << "[ init the test suite ]" << endl;);
+
+		bool parsed = reader.parse(prequest->content, value);
+		if (parsed) {
+			g_launcher = value["launcher"].asString();
+			m_suite_name = value["suite_name"].asString();
+			cout << "launcher is " << g_launcher << endl;
+			if (g_launcher == "wrt-launcher")
+			{
+				g_run_wiget = true;
+				string test_suite = value["suite_id"].asString();
+				cout << "test suite is " << test_suite << endl;
+
+				g_launch_cmd = g_launcher + " -s " + test_suite;
+				g_kill_cmd = g_launcher + " -k " + test_suite;
+				getAllWidget();
+				killAllWidget();
+			}
+			else
+			{
+				g_run_wiget = false;
+				//wait for the index window.close, otherwise will occur bind aleady error
+				sleep(1);
+			}
+
+			json_str = "{\"OK\":1}";
+		}
+		else {
+			cout << "error while parse para from com-module, can't start test" << endl;
+			cout << prequest->content;
+			DBG_ONLY(outputFile << "error while parse para from com-module, can't start test" << endl;);
+			DBG_ONLY(outputFile << prequest->content;);
+			json_str = "{\"Error\":1}";
+		}
+	} else if (prequest->path.find("/set_testcase") != string::npos) {// invoke by com-module to send testcase data
 		m_block_finished = false;
 		m_set_finished = false;
 		m_timeout_count = 0;
 		m_server_checked = false;
-		cout << "[ init the test suite ]" << endl;
-		DBG_ONLY(outputFile << "[ init the test suite ]" << endl;);
+		cout << "[ set test cases ]" << endl;
+		DBG_ONLY(outputFile << "[ set test cases ]" << endl;);
 		parse_json_str(prequest->content);
 
 		start_client();
-		//set_timer(30); // set timer here incase widget hang.
+		if(g_run_wiget == true)//not set timeout when run on browser
+			set_timer(20); // set timer here incase widget hang.
+		m_check_times = 0;
 
 		m_block_case_index = 0;
 		if (m_current_block_index == 1)
@@ -243,9 +304,12 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 
 		json_str = "{\"OK\":1}";
 	} else if (prequest->path == "/check_server") {// invoke by index.html to find server running or not
+		m_server_checked = true;
+		m_check_times = 0;
+		cancel_time_check();
+		
 		cout << "[ checking server, and found the server is running ]" << endl;
 		DBG_ONLY(outputFile << "[ checking server, and found the server is running ]" << endl;);
-		m_server_checked = true;
 		json_str = "{\"OK\":1}";
 	} else if (prequest->path == "/check_server_status") {// invoke by com-module to get server status
 		Json::Value status;
@@ -258,19 +322,18 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 		json_str = status.toStyledString();
 
        	if (!m_server_checked) {
-       		cout << "waiting for widget check_server" << endl;
-       		DBG_ONLY(outputFile << "wait for widget check_server" << endl;);
+       		cout << "waiting for widget check_server, please check on device." << endl << endl;
+       		DBG_ONLY(outputFile << "wait for widget check_server, please check on device." << endl << endl;);
        	}
 		if (m_totalBlocks > 0)
 		{
-			cout << "block: " << m_current_block_index << "/" << m_totalBlocks << ", total case: " << m_total_case_index << "/" << m_totalcaseCount << ", block case: " << m_block_case_index << "/" << m_block_case_count << ", m_timeout_count:" << m_timeout_count << endl;
-        	DBG_ONLY(outputFile << "block: " << m_current_block_index << "/" << m_totalBlocks << ", total case: " << m_total_case_index << "/" << m_totalcaseCount << ", block case: " << m_block_case_index << "/" << m_block_case_count << ", m_timeout_count:" << m_timeout_count << endl;);
+			DBG_ONLY(cout << "group: " << m_current_block_index << "/" << m_totalBlocks << ", total case: " << m_total_case_index << "/" << m_totalcaseCount << ", group case: " << m_block_case_index << "/" << m_block_case_count << ", m_timeout_count:" << m_timeout_count << endl;);
+        	DBG_ONLY(outputFile << "group: " << m_current_block_index << "/" << m_totalBlocks << ", total case: " << m_total_case_index << "/" << m_totalcaseCount << ", group case: " << m_block_case_index << "/" << m_block_case_count << ", m_timeout_count:" << m_timeout_count << endl;);
         	if (m_exeType != "auto") {
-        		cout << "manual cases. please check device." << endl << endl;
-        		DBG_ONLY(outputFile << "manual cases. please click on device." << endl << endl;);
+        		cout << "manual cases. please check on device." << endl << endl;
+        		DBG_ONLY(outputFile << "manual cases. please check on device." << endl << endl;);
         	}
 		}
-        
 	} else if (prequest->path == "/shut_down_server") {
 		if (g_run_wiget == true)
 			killAllWidget(); // kill all widget when shutdown server
@@ -303,10 +366,9 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 			string error_type = "";
 			bool find_tc = get_auto_case(prequest->content, &error_type);
 			if (find_tc == false) {
-				json_str = "{\"" + error_type + "\":0}";
+				json_str = "{\"" + error_type + "\":1}";// {none:0} will not work sometime
 			} else {
-				json_str =
-						m_test_cases[m_block_case_index].to_json().toStyledString();
+				json_str = m_test_cases[m_block_case_index].to_json().toStyledString();
 			}
 		}
 	} else if (prequest->path.find("/manual_cases") != string::npos) {// invoke by index.html to get all manual cases
@@ -323,7 +385,17 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 			json_str = arrayObj.toStyledString();
 		}
 	} else if (prequest->path.find("/case_time_out") != string::npos) {// invoke by timer to notify case timeout
-		if (!m_test_cases) {
+		if (!m_server_checked) {// start widget again in case it dead. browser not need to restart
+			if (m_check_times < 3) {
+				m_check_times++;
+				cout << "[ checking the client " << m_check_times << " times ]" << endl;
+				DBG_ONLY(outputFile << "[ checking the client " << m_check_times << " times ]" << endl;);
+				if (g_run_wiget == true) start_client();
+				set_timer(20);
+			} else {// widget fail for 3 times. finish current set.
+				m_set_finished = true;
+			}
+		} else if (!m_test_cases) {
 			json_str = "{\"Error\":\"no case\"}";
 		} else if (m_block_case_index < m_block_case_count) {
 			checkResult(&m_test_cases[m_block_case_index]);
@@ -335,7 +407,7 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 		if ((prequest->content.length() == 0) || (!m_test_cases)) {
 			json_str = "{\"Error\":\"no manual result\"}";
 		} else {
-			find_purpose(prequest, false); // will set index in find_purpose
+			find_purpose(splitContent(prequest->content), false); // will set index in find_purpose
 			json_str = "{\"OK\":1}";
 		}
 	} else if (prequest->path.find("/check_execution_progress") != string::npos) {//invoke by index.html to get test result of last auto case
@@ -389,26 +461,15 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 			m_last_auto_result = "BLOCK";
 			m_rerun = true;
 		} else {
-			char* tmp = ComFun::UrlDecode(prequest->content.c_str());
-			string content = tmp;
-			delete[] tmp; // free memory from comfun
-			string sessionid = "";
-			std::vector < std::string > splitstr = ComFun::split(content, "&");
-			for (unsigned int i = 0; i < splitstr.size(); i++) {
-				vector < string > resultkey = ComFun::split(splitstr[i], "=");
-				if (resultkey[0] == "session_id"){
-					sessionid = resultkey[1];
-					break;
-				}
-			}
-			if (m_running_session == sessionid) {
+			Json::Value paras = splitContent(prequest->content);
+			if (m_running_session == paras["session_id"].asString()) {
 				m_rerun = false;
 				if (m_block_case_index < m_block_case_count) {
 	            	m_block_case_index++;
 	            	m_total_case_index++;
 	            }
 
-	            find_purpose(prequest, true);
+	            find_purpose(paras, true);
 
 	            json_str = "{\"OK\":1}";
             }
@@ -420,22 +481,14 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 
         json_str = "{\"OK\":1}";
     } else if (prequest->path.find("/capability") != string::npos) {// by test suite. only one query parameter each time
-        char* tmp = ComFun::UrlDecode(prequest->content.c_str());
-        string content = tmp;
-        delete[] tmp; // free memory from comfun
-
         json_str = "{\"support\":0}";
-        string name = "", value = "";
-        std::vector < std::string > splitstr = ComFun::split(content, "&");
-        for (unsigned int i = 0; i < splitstr.size(); i++) {
-            vector < string > resultkey = ComFun::split(splitstr[i], "=");
-            if (resultkey[0] == "name") {
-            	name = resultkey[1];
-            	for (unsigned int i = 0; i < name.size(); i++)
-            		name[i] = tolower(name[i]);
-            }
-            if (resultkey[0] == "value") value = resultkey[1];
-        }
+
+		Json::Value paras = splitContent(prequest->content);
+        string value = paras["value"].asString();
+        string name = paras["name"].asString();
+		for (unsigned int i = 0; i < name.size(); i++)
+			name[i] = tolower(name[i]);
+
         if (m_capability[name].isBool()) {// for bool value, omit the value part
             json_str = "{\"support\":1}";
         }
@@ -468,44 +521,28 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 }
 
 // find correct case according the purpose sent by widget
-void HttpServer::find_purpose(struct HttpRequest *prequest, bool auto_test) {
-	string purpose = "";
-	string result = "";
-	string msg = "";
-	string content = "";
-
-	char* tmp = ComFun::UrlDecode(prequest->content.c_str());
-	content = tmp;
-	delete[] tmp; // free memory from comfun
-
-	std::vector < std::string > splitstr = ComFun::split(content, "&");
-	for (unsigned int i = 0; i < splitstr.size(); i++) {
-		vector < string > resultkey = ComFun::split(splitstr[i], "=");
-		if (resultkey[0] == "purpose")
-			purpose = resultkey[1];
-		else if (resultkey[0] == "result")
-			result = resultkey[1];
-		else if (resultkey[0] == "msg")
-			msg = resultkey[1];
-	}
+void HttpServer::find_purpose(Json::Value paras, bool auto_test) {
+	string purpose = paras["purpose"].asString();
+	string id = paras["case_id"].asString();
 
 	bool found = false;
 	for (int i = 0; i < m_block_case_count; i++) {
-		if (m_test_cases[i].purpose == purpose) {
-			m_test_cases[i].set_result(result, msg);
+		if ((m_test_cases[i].case_id == id) || (m_test_cases[i].purpose == purpose)) {
+			m_test_cases[i].set_result(paras);
 			found = true;
 			if (!auto_test) // should auto test use this logic?
 				m_block_case_index = i; // set index by purpose found
+			print_info_string(i);
 			break;
 		}
 	}
 	if (!found) {
 		cout << "[ Error: can't find any test case by key: " << purpose << " ]"	<< endl;
-		DBG_ONLY(outputFile << "[ Error: can't find any test case by key: " << purpose << " ]"	<< endl;);
+		DBG_ONLY(outputFile << "[ Error: can't find any test case by key: " << purpose << " ]" << endl;);
 	}
 
 	if (auto_test)
-		m_last_auto_result = result;
+		m_last_auto_result = paras["result"].asString();
 }
 
 // create new thread for each http request
@@ -586,7 +623,7 @@ void timer_handler(int signum) {
 	struct sockaddr_in address;
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = inet_addr("127.0.0.1");
-	address.sin_port = htons(SERVER_PORT);
+	address.sin_port = htons(server_port);
 	int len = sizeof(address);
 	int result = connect(sockfd, (struct sockaddr *) &address, len);
 	if (result == -1) {
@@ -597,19 +634,24 @@ void timer_handler(int signum) {
 	}
 }
 
-void HttpServer::print_info_string(string case_id) {
+void HttpServer::print_info_string(int case_index) {
+	string result = m_test_cases[case_index].result;
+
 	if (m_rerun) {
-		cout << "\n[case] execute case again: ";
-		DBG_ONLY(outputFile << "\n[case] execute case again: ";);
+		cout << endl << "[case] again execute case: ";
+		DBG_ONLY(outputFile << endl << "[case] again: ";);
 	}
 	else {
-		cout << "\n[case] execute case: ";
-		DBG_ONLY(outputFile << "\n[case] execute case: ";);
+		cout << endl << "execute case: ";
+		DBG_ONLY(outputFile << endl << "[case]: ";);
 	}
-	cout << case_id << endl;
-	cout << "last_test_result: " << m_last_auto_result << endl;
-	DBG_ONLY(outputFile << case_id << endl;);
-	DBG_ONLY(outputFile << "last_test_result: " << m_last_auto_result << endl;);
+	cout << m_suite_name << " # " << m_test_cases[case_index].case_id << " ..(" << result << ")" << endl;
+	DBG_ONLY(outputFile << m_suite_name << " # " << m_test_cases[case_index].case_id << " ..(" << result << ")" << endl;);
+
+	if (result != "PASS") {// print error message if case not pass
+		cout << m_test_cases[case_index].std_out << endl;
+		DBG_ONLY(outputFile << m_test_cases[case_index].std_out << endl;);
+	}
 }
 
 // prepare to run current auto case by set the start time, etc.
@@ -622,7 +664,7 @@ bool HttpServer::get_auto_case(string content, string *type) {
 					if (m_block_case_index < m_block_case_count) {
 						set_timer(m_test_cases[m_block_case_index].timeout_value);
 						m_test_cases[m_block_case_index].set_start_at();
-						print_info_string(m_test_cases[m_block_case_index].case_id);
+						DBG_ONLY(outputFile << endl << "start time: " << m_test_cases[m_block_case_index].start_at << endl;);
 						return true;
 					} else {
 						cout << endl << "[ no auto case is available any more ]" << endl;
@@ -651,27 +693,14 @@ bool HttpServer::get_auto_case(string content, string *type) {
 void HttpServer::StartUp() {
     DBG_ONLY(
 	outputFile.open("httpserver_log.txt",ios::out);
-	outputFile<<"httpserver.g_port is:"+g_port<<endl;
-	outputFile<<"httpserver.g_hide_status is:"+g_hide_status<<endl;
-	outputFile<<"httpserver.g_test_suite is:"+g_test_suite<<endl;
-	outputFile<<"httpserver.g_exe_sequence is:"+g_exe_sequence<<endl;
-	outputFile<<"httpserver.g_enable_memory_collection is:"+g_enable_memory_collection<<endl;
+	outputFile << "httpserver.g_port is:" << g_port << endl;
     );
     if (g_show_log == true)
     {
-		cout<<"httpserver.g_show_log is:"<<g_show_log<<endl;
-		cout<<"httpserver.g_port is:"+g_port<<endl;
-		cout<<"httpserver.g_hide_status is:"+g_hide_status<<endl;
-		cout<<"httpserver.g_test_suite is:"+g_test_suite<<endl;
-		cout<<"httpserver.g_exe_sequence is:"+g_exe_sequence<<endl;
-		cout<<"httpserver.g_enable_memory_collection is:"+g_enable_memory_collection<<endl;
+		cout << "httpserver.g_show_log is:" << g_show_log << endl;
+		cout << "httpserver.g_port is:" << g_port << endl;
     }
-    if (g_run_wiget == true){ 
-		getAllWidget();
-		killAllWidget();
-    }
-    else //wait for the index window.close, otherwise will occur bind aleady error
-		sleep(5);
+
     int serversocket;
 	gServerStatus = 1;
 	struct sockaddr_in server_addr;
@@ -683,9 +712,10 @@ void HttpServer::StartUp() {
 		return;
 	}
 
+	server_port = g_port;
 	bzero(&server_addr, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = htons(SERVER_PORT);
+	server_addr.sin_port = htons(server_port);
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	int tmp = 1;
@@ -731,7 +761,10 @@ void HttpServer::checkResult(TestCase* testcase) {
 		cout << "[ Warning: time is out, test case \"" << testcase->purpose	<< "\" is timeout, set the result to \"BLOCK\", and restart the client ]" << endl;
 		DBG_ONLY(outputFile << "[ Warning: time is out, test case \"" << testcase->purpose	<< "\" is timeout, set the result to \"BLOCK\", and restart the client ]" << endl;);
 
-		testcase->set_result("BLOCK", "Time is out");
+		Json::Value result;
+		result["result"] = "BLOCK";
+		result["msg"] = "Time is out";
+		testcase->set_result(result);
 		m_last_auto_result = "BLOCK";
 
 		if (g_run_wiget == true){

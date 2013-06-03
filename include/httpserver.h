@@ -35,12 +35,13 @@ public:
 	void killAllWidget();
 	void start_client();
 	bool run_cmd(string cmdString, string expectString, bool showcmdAnyway);
-	void print_info_string(string case_id);
-	void find_purpose(struct HttpRequest *prequest, bool auto_test);
+	void print_info_string(int case_index);
+	void find_purpose(Json::Value paras, bool auto_test);
 	void getCurrentTime();
 	void cancel_time_check();
 	void set_timer(int timeout_value);
 	void getAllWidget();
+	Json::Value splitContent(string content);
 
 	struct sigaction sa;
 	struct itimerval timer;
@@ -62,6 +63,7 @@ public:
 	bool m_block_finished;
 	bool m_set_finished;
 	bool m_server_checked;
+	int m_check_times;
 
 	Json::Value m_capability;
 	//TestStatus   
@@ -81,14 +83,11 @@ public:
 
 	//some variables get from cmd line
 	bool g_show_log;
-	string g_port;
-	string g_hide_status;
-	string g_test_suite;
+	int g_port;
 	string g_launch_cmd;
 	string g_kill_cmd;
-	string g_exe_sequence;
-	string g_enable_memory_collection;
 	string g_launcher;//lancher name:wrt-launcher/browser
+	string m_suite_name;
 	bool g_run_wiget;//whether run on the device with wiget
 
 	ofstream outputFile;
