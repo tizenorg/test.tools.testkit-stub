@@ -65,11 +65,10 @@ clean:
 	rm -f $(UT_TARGET)
 
 install: $(TARGET)
-	#cp $(TARGET) $(PREFIX_BIN)
 	install -d $(DESTDIR)/usr/bin/
 	install -m 755 $(TARGET) $(DESTDIR)/usr/bin/
 	
 uninstall:
-	rm -f $(PREFIX_BIN)/$(TARGET)
+	rm /usr/bin/$(TARGET)
 
 rebuild: clean compile

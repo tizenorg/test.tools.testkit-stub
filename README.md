@@ -3,6 +3,13 @@ TCT-stub
 
 Intel Tizen Compatibility Test Stub
 
+to build and install x86 version on host pc,
+1, make
+
+2, sudo make install
+
+
+
 to build ARM version locally(without OBS), please make sure 
 
 1, install tizen2.0 SDK with all component selected, 
