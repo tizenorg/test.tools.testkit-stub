@@ -1,7 +1,7 @@
 
 Name:       testkit-stub
 Summary:    test
-Version:    1.0
+Version:    1.3
 Release:    1
 Group:      Development/Debug
 License:    GPL v2 only

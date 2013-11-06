@@ -243,7 +243,7 @@ a typical workflow of manual case would be
 **/
 void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 	prequest->prefix = "application/json";
-	string json_str = "{\"OK\":1}";
+	string json_str = "";
 
 	if (prequest->path.find("/init_test") != string::npos) {// invoke by com-module to init some para for test
 		Json::Reader reader;
@@ -274,13 +274,15 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 				//wait for the index window.close, otherwise will occur bind aleady error
 				sleep(1);
 			}
+
+			json_str = "{\"OK\":1}";
 		}
 		else {
 			cout << "error while parse para from com-module, can't start test" << endl;
 			cout << prequest->content;
 			DBG_ONLY(outputFile << "error while parse para from com-module, can't start test" << endl;);
 			DBG_ONLY(outputFile << prequest->content;);
-			json_str = "{\"Error\":\"parse error\"}";
+			json_str = "{\"Error\":1}";
 		}
 	} else if (prequest->path.find("/set_testcase") != string::npos) {// invoke by com-module to send testcase data
 		m_block_finished = false;
@@ -299,6 +301,8 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 		m_block_case_index = 0;
 		if (m_current_block_index == 1)
 			m_total_case_index = 0;
+
+		json_str = "{\"OK\":1}";
 	} else if (prequest->path == "/check_server") {// invoke by index.html to find server running or not
 		m_server_checked = true;
 		m_check_times = 0;
@@ -306,6 +310,7 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 		
 		cout << "[ checking server, and found the server is running ]" << endl;
 		DBG_ONLY(outputFile << "[ checking server, and found the server is running ]" << endl;);
+		json_str = "{\"OK\":1}";
 	} else if (prequest->path == "/check_server_status") {// invoke by com-module to get server status
 		Json::Value status;
 		status["block_finished"] = m_block_finished ? 1 : 0;
@@ -332,8 +337,10 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 	} else if (prequest->path == "/shut_down_server") {
 		if (g_run_wiget == true)
 			killAllWidget(); // kill all widget when shutdown server
+		json_str = "{\"OK\":1}";
 		gIsRun = 0;
 	} else if (prequest->path.find("/init_session_id") != string::npos) {// invoke by index.html to record a session id
+		json_str = "{\"OK\":1}";
 		int index = prequest->path.find('=');
 		if (index != -1) {
 			m_running_session = prequest->path.substr(index + 1);
@@ -359,7 +366,7 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 			string error_type = "";
 			bool find_tc = get_auto_case(prequest->content, &error_type);
 			if (find_tc == false) {
-				json_str = "{\"" + error_type + "\":0}";
+				json_str = "{\"" + error_type + "\":1}";// {none:0} will not work sometime
 			} else {
 				json_str = m_test_cases[m_block_case_index].to_json().toStyledString();
 			}
@@ -401,6 +408,7 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 			json_str = "{\"Error\":\"no manual result\"}";
 		} else {
 			find_purpose(splitContent(prequest->content), false); // will set index in find_purpose
+			json_str = "{\"OK\":1}";
 		}
 	} else if (prequest->path.find("/check_execution_progress") != string::npos) {//invoke by index.html to get test result of last auto case
 		char *total_count = new char[16];
@@ -422,6 +430,8 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 		m_block_finished = true;
 		if (m_current_block_index == m_totalBlocks)
 			m_set_finished = true;
+
+		json_str = "{\"OK\":1}";
 	}
 	//from com module,when m_set_finished is true
 	else if (prequest->path == "/get_test_result") {
@@ -460,12 +470,16 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
 	            }
 
 	            find_purpose(paras, true);
+
+	            json_str = "{\"OK\":1}";
             }
         }
     } else if (prequest->path == "/set_capability") {// by com-module to send capability data
         Json::Reader reader;
 
         reader.parse(prequest->content, m_capability);
+
+        json_str = "{\"OK\":1}";
     } else if (prequest->path.find("/capability") != string::npos) {// by test suite. only one query parameter each time
         json_str = "{\"support\":0}";
 
@@ -488,7 +502,6 @@ void HttpServer::processpost(int s, struct HttpRequest *prequest) {
         }
 	} else {
         cout << "=================unknown request: " << prequest->path << endl;
-		json_str = "{\"Error\":\"unknown request\"}";
 	}
     
     DBG_ONLY(
@@ -718,8 +731,8 @@ void HttpServer::StartUp() {
 		return;
 	}
 	gIsRun = 1;
-	cout << "[ Server is running.....]" << endl;
-	DBG_ONLY(outputFile << "[ Server is running.....]" << endl;);
+	cout << "[Server is running.....]" << endl;
+	DBG_ONLY(outputFile << "[Server is running.....]" << endl;);
 
 	while (gIsRun) {
 		clientsocket = accept(serversocket, (struct sockaddr *) &clientAddr,
