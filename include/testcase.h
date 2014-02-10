@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2013-2014 Intel Corporation, All Rights Reserved
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms and conditions of the GNU General Public License,
+ * version 2, as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ */
+
 #include <stdio.h>
 #include <string.h>
 
@@ -19,11 +32,9 @@ public:
 	string start_at;
 	string end_at;
 	string std_out;
-	bool is_executed;
 
 	// below m_case are sent from Com-module for each case.
 	Json::Value m_case;
-	string purpose;
 	string case_id;
 	int timeout_value;
 

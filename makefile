@@ -1,6 +1,7 @@
-TARGET = httpserver
+TARGET = testkit-stub
+WIN_TARGET = testkit-stub.exe
 UT_TARGET = ut
-OBJ_PATH = objs
+OBJ_PATH = obj
 PREFIX_BIN =
 
 CC = g++
@@ -8,11 +9,13 @@ INCLUDES = -I include
 LIBS = 
 CFLAGS =-Wall -Werror
 LINKFLAGS = -lpthread
+WIN_LINKFLAGS = -lpthread -lwsock32 -static
+ANDROID_LINKFLAGS = -lpthread -static
 
-JSON_SRCDIR = src/json
-SERVER_SRCDIR = src
-MAIN_SRCDIR = src/main
-UT_SRCDIR = src/ut
+SERVER_SRCDIR = source
+JSON_SRCDIR = $(SERVER_SRCDIR)/json
+MAIN_SRCDIR = $(SERVER_SRCDIR)/main
+UT_SRCDIR = $(SERVER_SRCDIR)/ut
 
 JSON_SOURCES = $(foreach d,$(JSON_SRCDIR),$(wildcard $(d)/*.cpp) )
 JSON_OBJS = $(patsubst %.cpp, $(OBJ_PATH)/%.o, $(JSON_SOURCES))
@@ -27,6 +30,8 @@ UT_SOURCES = $(foreach d,$(UT_SRCDIR),$(wildcard $(d)/*.cpp) )
 UT_OBJS = $(patsubst %.cpp, $(OBJ_PATH)/%.o, $(UT_SOURCES))
 
 default:init compile
+win:init win_compile
+android:init android_compile
 ut:init ut_compile
 ut: CC += -DDEBUG -g
 debug: CC += -DDEBUG -g
@@ -59,17 +64,25 @@ ut_compile:$(JSON_OBJS) $(SERVER_OBJS) $(UT_OBJS)
 compile:$(JSON_OBJS) $(SERVER_OBJS) $(MAIN_OBJS)
 	$(CC)  $^ -o $(TARGET)  $(LINKFLAGS) $(LIBS)
 
+win_compile:$(JSON_OBJS) $(SERVER_OBJS) $(MAIN_OBJS)
+	$(CC)  $^ -o $(WIN_TARGET)  $(WIN_LINKFLAGS) $(LIBS)
+
+android_compile:$(JSON_OBJS) $(SERVER_OBJS) $(MAIN_OBJS)
+	$(CC)  $^ -o $(TARGET)  $(ANDROID_LINKFLAGS) $(LIBS)
+
 clean:
 	rm -rf $(OBJ_PATH)
 	rm -f $(TARGET)
+	rm -f $(WIN_TARGET)
 	rm -f $(UT_TARGET)
+	rm -fr bin
+	rm -fr gen
 
 install: $(TARGET)
-	#cp $(TARGET) $(PREFIX_BIN)
 	install -d $(DESTDIR)/usr/bin/
 	install -m 755 $(TARGET) $(DESTDIR)/usr/bin/
 	
 uninstall:
-	rm -f $(PREFIX_BIN)/$(TARGET)
+	rm /usr/bin/$(TARGET)
 
 rebuild: clean compile
