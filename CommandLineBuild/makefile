@@ -34,42 +34,42 @@ CXX_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
-src \
+source \
 
 # -include src/subdir.mk
 # Add inputs and outputs from these tool invocations to the build variables 
-CPP_SRCS += \
-../src/main/main.cpp \
-../src/comfun.cpp \
-../src/testcase.cpp \
-../src/httpserver.cpp \
-../src/json/json_reader.cpp \
-../src/json/json_value.cpp \
-../src/json/json_writer.cpp
+#CPP_SRCS += \
+../source/main/main.cpp \
+../source/comfun.cpp \
+../source/testcase.cpp \
+../source/httpserver.cpp \
+../source/json/json_reader.cpp \
+../source/json/json_value.cpp \
+../source/json/json_writer.cpp
 
 
 OBJS += \
-./src/main/main.o \
-./src/comfun.o \
-./src/testcase.o \
-./src/httpserver.o \
-./src/json/json_reader.o \
-./src/json/json_value.o \
-./src/json/json_writer.o
+./source/main/main.o \
+./source/comfun.o \
+./source/testcase.o \
+./source/httpserver.o \
+./source/json/json_reader.o \
+./source/json/json_value.o \
+./source/json/json_writer.o
 
 
-CPP_DEPS += \
-./src/main/main.d \
-./src/comfun.d \
-./src/testcase.d \
-./src/httpserver.d \
-./src/json/json_reader.d \
-./src/json/json_value.d \
-./src/json/json_writer.d
+#CPP_DEPS += \
+./source/main/main.d \
+./source/comfun.d \
+./source/testcase.d \
+./source/httpserver.d \
+./source/json/json_reader.d \
+./source/json/json_value.d \
+./source/json/json_writer.d
 
 
 # Each subdirectory must supply rules for building sources it contributes
-src/%.o: ../src/%.cpp
+source/%.o: ../source/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: C++ Compiler'
 	$(CC) -I"pch" -D_DEBUG -O0 -g3 -Wall -c -fmessage-length=0 $(INCLUDE_PATH) $(INCLUDES) $(CFLAG) -D_APP_LOG -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
@@ -108,23 +108,23 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: httpserver secondary-outputs
+all: testkit-stub secondary-outputs
 
 init: 
-	mkdir -p src/json
-	mkdir -p src/main
+	mkdir -p source/json
+	mkdir -p source/main
 
 # Tool invocations
-httpserver: init $(OBJS) $(USER_OBJS)
+testkit-stub: init $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: C++ Linker'
-	$(CC) -o"httpserver" $(OBJS) $(USER_OBJS) $(LIBS) $(LFLAG)
+	$(CC) -o"testkit-stub" $(OBJS) $(USER_OBJS) $(LIBS) $(LFLAG)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) src httpserver
+	-$(RM) source testkit-stub
 
 secondary-outputs: $(MO_FILES) $(EDJ_FILES)
 
