@@ -1,57 +1,37 @@
+Name:		testkit-stub
+Summary:	Test stub of testkit-lite
+Version:	1.0
+Release:	1
+Group:		Development/Testing
+License:	GPL-2.0
+URL:		http://github.com/testkit/testkit-stub
+Source:		%{name}-%{version}.tar.gz
+Source1001:	%{name}.manifest
+BuildRoot:	%{_tmppath}/%{name}-%{version}-build
 
-Name:       testkit-stub
-Summary:    test
-Version:    1.0
-Release:    1
-Group:      Development/Debug
-License:    GPL v2 only
-URL:        http://www.moblin.org/
-Source0:    %{name}-%{version}.tar.gz
-BuildRoot:  %{_tmppath}/%{name}-%{version}-build
 
 %description
-test
+Test stub for testkit-lite to run web applications
 
 
 %prep
 %setup -q -n %{name}-%{version}
-# >> setup
-# << setup
+cp %{SOURCE1001} .
 
 %build
-# >> build pre
-# << build pre
-
-
-# Call make instruction with smp support
 make %{?jobs:-j%jobs}
 
-# >> build post
-# << build post
+
 %install
 rm -rf %{buildroot}
-# >> install pre
-# << install pre
 %make_install
 
-# >> install post
-# << install post
 
 %clean
 rm -rf %{buildroot}
 
 
-
-
-
-
 %files
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
-# >> files
 %{_bindir}/testkit-stub
-# << files
-
-
-%changelog
-* Tue Mar  21 2013 Li Min <min.a.li@intel.com> 0.10
-- create for SLP build
