@@ -19,6 +19,7 @@ Test stub for testkit-lite to run web applications
 cp %{SOURCE1001} .
 
 %build
+export CFLAGS+=" -Wno-error=unused-result "
 make %{?jobs:-j%jobs}
 
 

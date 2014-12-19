@@ -7,8 +7,8 @@ PREFIX_BIN =
 CC = g++
 INCLUDES = -I include
 LIBS = 
-CFLAGS =-Wall -Werror
-LINKFLAGS = -lpthread
+CFLAGS +=-Wall -Werror
+LINKFLAGS = $(LDFLAGS) -lpthread
 WIN_LINKFLAGS = -lpthread -lwsock32 -static
 ANDROID_LINKFLAGS = -lpthread -static
 
