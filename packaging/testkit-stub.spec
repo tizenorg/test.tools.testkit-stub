@@ -20,7 +20,7 @@ cp %{SOURCE1001} .
 
 %build
 export CFLAGS+=" -Wno-error=unused-result "
-make %{?jobs:-j%jobs}
+make -j1
 
 
 %install
